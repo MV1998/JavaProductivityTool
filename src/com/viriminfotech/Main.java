@@ -1,21 +1,55 @@
 package com.viriminfotech;
 
+import com.viriminfotech.screens.SignInScreen;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Optional;
 
 public class Main {
 
     public static void main(String[] args) {
 	// write your code here
 
-        Main main = new Main();
-        main.createWindowWithButton();
+        SignInScreen signInScreen = new SignInScreen();
+
+        try {
+            String line;
+            Process p = Runtime.getRuntime().exec
+                    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+            BufferedReader input =
+                    new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = input.readLine()) != null) {
+                System.out.println(line); //<-- Parse data here.
+            }
+            input.close();
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
+        ProcessHandle.allProcesses()
+                .forEach(process -> System.out.println(processDetails(process)));
+    }
+
+    private static String processDetails(ProcessHandle process) {
+        return String.format("%8d %8s %10s %26s %-40s",
+                process.pid(),
+                text(process.parent().map(ProcessHandle::pid)),
+                text(process.info().user()),
+                text(process.info().startInstant()),
+                text(process.info().commandLine()));
+    }
+
+    private static String text(Optional<?> optional) {
+        return optional.map(Object::toString).orElse("-");
     }
 
     private void createWindowWithButton() {
@@ -42,10 +76,9 @@ public class Main {
         try {
             Robot robot = new Robot();
             System.out.println("X = : " + MouseInfo.getPointerInfo().getLocation().getX() + " Y : = " + MouseInfo.getPointerInfo().getLocation().getY());
-            jButton.setText("x: " +  MouseInfo.getPointerInfo().getLocation().getX() + " y: " +  MouseInfo.getPointerInfo().getLocation().getY());
+            jButton.setText("x: " + MouseInfo.getPointerInfo().getLocation().getX() + " y: " + MouseInfo.getPointerInfo().getLocation().getY());
 
             robot.setAutoWaitForIdle(true);
-
 
             Rectangle rectangle = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             BufferedImage bufferedImage = robot.createScreenCapture(rectangle);
@@ -57,7 +90,5 @@ public class Main {
             System.err.println(ex);
         }
     }
-
-
 }
 

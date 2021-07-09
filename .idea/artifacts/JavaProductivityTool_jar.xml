@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JavaProductivityTool:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JavaProductivityTool_jar</output-path>
+    <root id="archive" name="JavaProductivityTool.jar">
+      <element id="module-output" name="JavaProductivityTool" />
+    </root>
+  </artifact>
+</component>
