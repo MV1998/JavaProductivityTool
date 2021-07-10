@@ -1,5 +1,7 @@
 package com.viriminfotech.screens;
 
+import com.viriminfotech.https_request.SignInLoad;
+import com.viriminfotech.interfaces.SignInListener;
 import com.viriminfotech.utilities.InternetConnectionChecker;
 
 import javax.swing.*;
@@ -44,13 +46,32 @@ public class SignInScreen extends JFrame {
         jButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
+                authenticating.setVisible(true);
                 jButton.setEnabled(false);
                 jButton.setBackground(Color.lightGray);
-                authenticating.setVisible(true);
                 if (new InternetConnectionChecker().isInternetAvailable()) {
-                    MainScreen mainScreen = new MainScreen();
-                    setVisible(false);
-                    dispose();
+//                    MainScreen mainScreen = new MainScreen();
+//                    setVisible(false);
+//                    dispose();
+//
+                    SignInLoad signInLoad = new SignInLoad(new SignInListener() {
+                        @Override
+                        public void onSignInSuccessful() {
+                            MainScreen mainScreen = new MainScreen();
+                            setVisible(false);
+                            dispose();
+                        }
+
+                        @Override
+                        public void onSignInError(int responseCode) {
+                            if (responseCode > 0 && responseCode == 500) {
+                                authenticating.setText("Username and password incorrect.");
+                            }
+                            jButton.setEnabled(true);
+                            jButton.setBackground(Color.decode("#b39ddb"));
+                        }
+                    });
+                    signInLoad.signIn(username, password);
                 }else {
                     authenticating.setText("Please check your internet connection.");
                     jButton.setEnabled(true);
@@ -157,11 +178,11 @@ public class SignInScreen extends JFrame {
         jPassword.setHorizontalAlignment(JTextField.CENTER);
         jPassword.setBounds(0, 245, 600, 50);
 
+        this.add(authenticating);
         this.add(jUsername);
         this.add(jPassword);
         this.add(jButton);
         this.add(jLabel);
-        this.add(authenticating);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
     }

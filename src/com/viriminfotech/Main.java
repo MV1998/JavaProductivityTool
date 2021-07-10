@@ -20,7 +20,8 @@ import java.util.Optional;
 public class Main {
 
     public static void main(String[] args) {
-	// write your code here
+
+        // write your code here
 //        JPanel panel = new JPanel(new BorderLayout());
 //        List<String> myList = new ArrayList<>(10);
 //        for (int index = 0; index < 20; index++) {
@@ -40,22 +41,22 @@ public class Main {
 
        SignInScreen signInScreen = new SignInScreen();
 
-        try {
-            String line;
-            Process p = Runtime.getRuntime().exec
-                    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
-            BufferedReader input =
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((line = input.readLine()) != null) {
-                System.out.println(line); //<-- Parse data here.
-            }
-            input.close();
-        } catch (Exception err) {
-            err.printStackTrace();
-        }
-
-        ProcessHandle.allProcesses()
-                .forEach(process -> System.out.println(processDetails(process)));
+//        try {
+//            String line;
+//            Process p = Runtime.getRuntime().exec
+//                    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+//            BufferedReader input =
+//                    new BufferedReader(new InputStreamReader(p.getInputStream()));
+//            while ((line = input.readLine()) != null) {
+//                System.out.println(line); //<-- Parse data here.
+//            }
+//            input.close();
+//        } catch (Exception err) {
+//            err.printStackTrace();
+//        }
+//
+//        ProcessHandle.allProcesses()
+//                .forEach(process -> System.out.println(processDetails(process)));
 
 
 //        JPanel panel = createPanel();

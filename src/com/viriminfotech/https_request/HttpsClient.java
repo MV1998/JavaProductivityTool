@@ -19,7 +19,7 @@ public class HttpsClient{
 
     public void testIt(){
 
-        String https_url = "https://www.google.com/";
+        String https_url = "http://192.168.43.209/project";
         URL url;
         try {
 
