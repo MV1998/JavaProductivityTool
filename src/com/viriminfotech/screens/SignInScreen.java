@@ -1,10 +1,15 @@
 package com.viriminfotech.screens;
 
+import com.viriminfotech.utilities.InternetConnectionChecker;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 public class SignInScreen extends JFrame {
 
@@ -12,15 +17,15 @@ public class SignInScreen extends JFrame {
     private String password = "";
     private JFrame jFrame;
     public SignInScreen() {
-        super("Virim Logger");
+        super("V Logger");
         jFrame = this;
-
 
         // size of the main sign-in frame
         setSize(600, 600);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
+        this.setIconImage(new ImageIcon("logo.png").getImage());
         this.getContentPane().setBackground(Color.white);
 
         JButton jButton = new JButton("Sign-in");
@@ -29,12 +34,28 @@ public class SignInScreen extends JFrame {
         jButton.setForeground(Color.white);
         jButton.setBackground(Color.decode("#b39ddb"));
 
+        JLabel authenticating = new JLabel("Authenticating...");
+        authenticating.setHorizontalAlignment(JTextField.CENTER);
+        authenticating.setBounds(0, 400,   600, 100);
+        authenticating.setFont(new Font("Serif", Font.PLAIN, 20));
+        authenticating.setVisible(false);
+        authenticating.setBackground(Color.decode("#000000"));
+
         jButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                setVisible(false);
-                dispose();
-                MainScreen mainScreen = new MainScreen();
+                jButton.setEnabled(false);
+                jButton.setBackground(Color.lightGray);
+                authenticating.setVisible(true);
+                if (new InternetConnectionChecker().isInternetAvailable()) {
+                    MainScreen mainScreen = new MainScreen();
+                    setVisible(false);
+                    dispose();
+                }else {
+                    authenticating.setText("Please check your internet connection.");
+                    jButton.setEnabled(true);
+                    jButton.setBackground(Color.decode("#b39ddb"));
+                }
             }
         });
 
@@ -140,6 +161,7 @@ public class SignInScreen extends JFrame {
         this.add(jPassword);
         this.add(jButton);
         this.add(jLabel);
+        this.add(authenticating);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
     }
