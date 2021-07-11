@@ -12,6 +12,7 @@ public class Constants {
     public static final int TIMER_DELAY = 1000;
    // public static final int TIMER_REPEAT_TIME = 180000;
     public static final int TIMER_REPEAT_TIME = 1000;
+    public static final int IMAGE_CAPTURE_TIMER = 360000;
 
     public static final String PROJECT_NAME = "VLogger";
     public static final String SIGN_IN = "Sign In";
@@ -34,4 +35,11 @@ public class Constants {
     public static boolean IS_UNIX = (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0);
     public static boolean IS_SOLARIS = (OS.indexOf("sunos") >= 0);
 
+    public static String formatSecondDateTime(int second) {
+        if(second <= 0)return "";
+        int h = second / 3600;
+        int m = second % 3600 / 60;
+        int s = second % 60; // Less than 60 is the second, enough 60 is the minute
+        return h+"h "+m+"m "+s+"s";
+    }
 }

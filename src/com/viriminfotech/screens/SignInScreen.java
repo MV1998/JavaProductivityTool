@@ -50,28 +50,28 @@ public class SignInScreen extends JFrame {
                 jButton.setEnabled(false);
                 jButton.setBackground(Color.lightGray);
                 if (new InternetConnectionChecker().isInternetAvailable()) {
-//                    MainScreen mainScreen = new MainScreen();
-//                    setVisible(false);
-//                    dispose();
+                    MainScreen mainScreen = new MainScreen();
+                    setVisible(false);
+                    dispose();
 //
-                    SignInLoad signInLoad = new SignInLoad(new SignInListener() {
-                        @Override
-                        public void onSignInSuccessful() {
-                            MainScreen mainScreen = new MainScreen();
-                            setVisible(false);
-                            dispose();
-                        }
-
-                        @Override
-                        public void onSignInError(int responseCode) {
-                            if (responseCode > 0 && responseCode == 500) {
-                                authenticating.setText("Username and password incorrect.");
-                            }
-                            jButton.setEnabled(true);
-                            jButton.setBackground(Color.decode("#b39ddb"));
-                        }
-                    });
-                    signInLoad.signIn(username, password);
+//                    SignInLoad signInLoad = new SignInLoad(new SignInListener() {
+//                        @Override
+//                        public void onSignInSuccessful() {
+//                            MainScreen mainScreen = new MainScreen();
+//                            setVisible(false);
+//                            dispose();
+//                        }
+//
+//                        @Override
+//                        public void onSignInError(int responseCode) {
+//                            if (responseCode > 0 && responseCode == 500) {
+//                                authenticating.setText("Username and password incorrect.");
+//                            }
+//                            jButton.setEnabled(true);
+//                            jButton.setBackground(Color.decode("#b39ddb"));
+//                        }
+//                    });
+//                    signInLoad.signIn(username, password);
                 }else {
                     authenticating.setText("Please check your internet connection.");
                     jButton.setEnabled(true);

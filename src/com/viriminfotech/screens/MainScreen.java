@@ -1,9 +1,8 @@
 package com.viriminfotech.screens;
 
+import com.viriminfotech.models.MProject;
 import com.viriminfotech.utilities.Constants;
 import com.viriminfotech.utilities.InternetConnectionChecker;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -25,33 +24,34 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class MainScreen extends JFrame implements ListSelectionListener, MouseListener, ActionListener {
 
     private JButton startButton, logoutButton;
-    private JLabel taskLabel, loggedInTimeLabel, loadingLabel;
+    private JLabel taskLabel, loggedInTimeLabel, loadingLabel, idleTimeLabel, breakTimeLabel;
     private JDialog taskDialog, idleDialog, alertDialog;
     private JRadioButton testingRadioBtn, developmentRadioBtn, meetingRadioBtn, analysisRadioBtn;
     private ArrayList<String> myList;
+    private ArrayList<MProject> mProjects = new ArrayList<>();
     private JList list;
     private String task;
     private String selectedProject;
     private int selectedProjectId;
     private int timerStared = 0;
 
-    private volatile boolean isActive, isIdleOrBreakDialog = false;
+    private volatile boolean isActive, isIdle = false, isBreak = false;
 
     private Date firstStartTime;
     private int activeTime = 0;
     private int idle = 0;
     private int breakTime = 0;
 
-    private java.util.Timer timer;
+    private java.util.Timer activeTimer, idleTimer, captureTimer;
     public MainScreen() {
         super("V Logger");
-
         // Main frame configuration
         setSize(600, 600);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -62,6 +62,7 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
 
         //Select project jLabel
         taskLabel = new JLabel("Click here to select project");
+        taskLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         taskLabel.setVerticalAlignment(JLabel.CENTER);
         taskLabel.setHorizontalAlignment(JLabel.CENTER);
         taskLabel.setBounds(0, 50,   600, 50);
@@ -72,16 +73,18 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
 
         // Project dialog configuration
         taskDialog = new JDialog(this , "Projects", true);
-        taskDialog.setLocationRelativeTo(null);
+        taskDialog.setLocation(500, 100);
         taskDialog.add(createProjectDialog());
         taskDialog.setSize(600,600);
+        taskDialog.setResizable(false);
         taskDialog.setVisible(false);
 
         idleDialog = new JDialog(this , "Idle Detected", true);
         idleDialog.setLocationRelativeTo(null);
         idleDialog.add(idleDialogBox());
         idleDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        idleDialog.setSize(600,600);
+        idleDialog.setSize(300, 100);
+        idleDialog.setResizable(false);
         idleDialog.setVisible(false);
 
         alertDialog = new JDialog(this , "Alert", true);
@@ -89,6 +92,7 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         alertDialog.add(alertDialogBox());
         alertDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         alertDialog.setSize(300,100);
+        alertDialog.setResizable(false);
         alertDialog.setVisible(false);
 
         //radio button
@@ -96,7 +100,9 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
 
 
         startButton = new JButton("Start Timer");
+        startButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         startButton.setActionCommand("5");
+        startButton.setBorder(null);
         startButton.addActionListener(this);
         startButton.setFont(new Font("Serif", Font.BOLD, 18));
         startButton.setBounds(0, 290, 600, 50);
@@ -104,7 +110,7 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         startButton.setBackground(Color.decode("#3d5afe"));
 
 
-        loggedInTimeLabel = new JLabel("Time : 00:00:00");
+        loggedInTimeLabel = new JLabel("Active Time : 0h 0m 0s");
         loggedInTimeLabel.setVerticalAlignment(JLabel.CENTER);
         loggedInTimeLabel.setHorizontalAlignment(JLabel.CENTER);
         loggedInTimeLabel.setBounds(0, 350,   600, 50);
@@ -112,18 +118,20 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         loggedInTimeLabel.setForeground(Color.red);
         loggedInTimeLabel.setBackground(Color.GRAY);
 
-//        logoutButton = new JButton("Logout");
-//        logoutButton.setActionCommand("5");
-//        logoutButton.addActionListener(this);
-//        logoutButton.setFont(new Font("Serif", Font.BOLD, 18));
-//        logoutButton.setBounds(0, 510, 600, 50);
-//        logoutButton.setForeground(Color.white);
-//        logoutButton.setBackground(Color.decode("#3d5afe"));
+        idleTimeLabel = new JLabel("Idle Time : 0h 0m 0s");
+        idleTimeLabel.setVerticalAlignment(JLabel.CENTER);
+        idleTimeLabel.setHorizontalAlignment(JLabel.CENTER);
+        idleTimeLabel.setBounds(0, 380,   600, 50);
+        idleTimeLabel.setFont(new Font("Serif", Font.BOLD, 16));
+        idleTimeLabel.setForeground(Color.red);
+        idleTimeLabel.setBackground(Color.GRAY);
+
 
         JPanel jPanel = new JPanel();
         jPanel.setLayout(new FlowLayout());
         jPanel.setBounds(0, 510, 600, 50);
         logoutButton = new JButton("Logout");
+        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutButton.setActionCommand("6");
         logoutButton.addActionListener(this);
         logoutButton.setFont(new Font("Serif", Font.BOLD, 18));
@@ -141,6 +149,7 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         this.add(analysisRadioBtn);
         this.add(startButton);
         //  this.add(logoutButton);
+        this.add(idleTimeLabel);
         this.add(jPanel);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
@@ -150,23 +159,42 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
     // user can select the task from dialog
     private JPanel createProjectDialog() {
         if (new InternetConnectionChecker().isInternetAvailable()) {
-            String data = getProjectDataFromAPI();
-            System.out.println(data);
-            if (data.length() > 0) {
-                JSONObject jsonObject = new JSONObject(data);
-                JSONArray jsonArray = jsonObject.getJSONArray("data");
-                System.out.println("array length"+jsonArray.length());
+//            String data = getProjectDataFromAPI();
+//            System.out.println(data);
+//            if (data.length() > 0) {
+//                JSONObject jsonObject = new JSONObject(data);
+//                JSONArray jsonArray = jsonObject.getJSONArray("data");
+//                System.out.println("array length"+jsonArray.length());
+//                for (int i = 0; i < jsonArray.length(); i++) {
+//                    JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+//                    MProject mProject = new MProject();
+//                    mProject.setProject(jsonObject1.getString("project"));
+//                    mProject.setId(jsonObject1.getInt("id"));
+//                    mProjects.add(mProject);
+//                }
+//            }
+            for (int i = 0; i < 1000 ; i++) {
+                MProject mProject = new MProject();
+                mProject.setProject("Click to select Project " + i);
+                mProject.setId(i+0);
+                mProjects.add(mProject);
             }
         }
         JPanel jPanelTop = new JPanel(new BorderLayout());
         myList = new ArrayList<>();
-        for (int index = 0; index < 1000; index++) {
-            myList.add("List Item " + index);
+        for (int index = 0; index < mProjects.size(); index++) {
+            myList.add(mProjects.get(index).getProject());
         }
         list = new JList<String>((myList.toArray(new String[myList.size()])));
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.setSelectedIndex(0);
-        list.setFixedCellHeight(30);
+        list.setFixedCellHeight(50);
+        list.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        list.setCellRenderer(new ListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList jList, Object o, int i, boolean b, boolean b1) {
+                return createRenderer(i);
+            }
+        });
         list.setBackground(Color.white);
         list.addListSelectionListener(this);
         JScrollPane scrollPane = new JScrollPane();
@@ -177,18 +205,52 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
     }
 
     private JPanel idleDialogBox() {
-        JPanel jPanelTop = new JPanel(new BorderLayout());
-        JButton b = new JButton ("You are working right?");
+        JPanel jPanelTop = new JPanel();
+        jPanelTop.setLayout(new BorderLayout());
+        JButton b = new JButton ("Resume");
         b.addActionListener ( new ActionListener()
         {
             public void actionPerformed( ActionEvent e )
             {
-                isIdleOrBreakDialog = false;
-                System.out.println(isIdleOrBreakDialog);
+                activeTimer = new Timer();
+                activeTimer.scheduleAtFixedRate(new TaskTimer(), Constants.TIMER_DELAY, Constants.TIMER_REPEAT_TIME);
+
+                idleTimer.cancel();
+                isIdle = false;
                 idleDialog.setVisible(false);
             }
         });
-        jPanelTop.add(b);
+
+        JButton onBreak = new JButton ("On Break?");
+        onBreak.addActionListener ( new ActionListener()
+        {
+            public void actionPerformed( ActionEvent e )
+            {
+                if (activeTimer != null && idleTimer != null) {
+                    activeTimer.cancel();
+                    idleTimer.cancel();
+                }
+                isIdle = false;
+
+                //when starting break
+                isBreak = true;
+                isActive = false;
+                timerStared = 0;
+                startButton.setText("Start Timer");
+                startButton.setBackground(Color.blue);
+
+                taskLabel.setEnabled(true);
+                meetingRadioBtn.setEnabled(true);
+                developmentRadioBtn.setEnabled(true);
+                testingRadioBtn.setEnabled(true);
+                analysisRadioBtn.setEnabled(true);
+
+                System.out.println(isIdle);
+                idleDialog.setVisible(false);
+            }
+        });
+        jPanelTop.add(b, BorderLayout.SOUTH);
+        jPanelTop.add(onBreak, BorderLayout.NORTH);
         return jPanelTop;
     }
 
@@ -290,6 +352,9 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
             if (selectedProject != null && task != null) {
                 if (timerStared == 0) {
                     timerStared = 1;
+                    isActive = true;
+                    isIdle = false;
+                    isBreak= false;
                     startButton.setText("Stop Timer");
                     startButton.setBackground(Color.red);
                     taskLabel.setEnabled(false);
@@ -298,10 +363,13 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
                     testingRadioBtn.setEnabled(false);
                     analysisRadioBtn.setEnabled(false);
                     System.out.println("timer stared");
-                    timer = new java.util.Timer();
-                    timer.scheduleAtFixedRate(new TaskTimer(), Constants.TIMER_DELAY, Constants.TIMER_REPEAT_TIME);
+                    activeTimer = new java.util.Timer();
+                    activeTimer.scheduleAtFixedRate(new TaskTimer(), Constants.TIMER_DELAY, Constants.TIMER_REPEAT_TIME);
                 }else {
                     timerStared = 0;
+                    isActive = false;
+                    isIdle = false;
+                    isBreak= false;
                     startButton.setText("Start Timer");
                     startButton.setBackground(Color.blue);
                     taskLabel.setEnabled(true);
@@ -310,7 +378,7 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
                     testingRadioBtn.setEnabled(true);
                     analysisRadioBtn.setEnabled(true);
                     System.out.println("timer stopped");
-                    timer.cancel();
+                    activeTimer.cancel();
                 }
             }else {
                 alertDialog.setVisible(true);
@@ -334,17 +402,6 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         }
     }
 
-
-    class TaskTimer extends TimerTask {
-        @Override
-        public void run() {
-            System.out.println(isIdleOrBreakDialog);
-            activeTime += TimeUnit.MILLISECONDS.toMinutes(60000);
-            captureImage();
-            loggedInTimeLabel.setText("Time : " + activeTime);
-        }
-    }
-
     private void captureImage() {
         try {
             Robot robot = new Robot();
@@ -352,22 +409,25 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
             robot.setAutoWaitForIdle(true);
             Rectangle rectangle = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             BufferedImage bufferedImage = robot.createScreenCapture(rectangle);
+
             String fileName = "VLogger_"+ System.currentTimeMillis()+".png";
 
             File file = new File("");
             if (Constants.IS_WINDOWS) {
                 file = new File("D:\\images\\" + fileName);
             }
-            boolean status = ImageIO.write(bufferedImage, "png", file);
+            boolean status = ImageIO.write(bufferedImage,"png", file);
             System.out.println("Screen Captured ? " + status + " File Path:- " + file.getAbsolutePath());
 
-            if (!isIdleOrBreakDialog) {
+            if (!isIdle) {
                 if (MouseInfo.getPointerInfo().getLocation().getX() == Constants.MOUSE_X_POSITION &&
                         MouseInfo.getPointerInfo().getLocation().getY() == Constants.MOUSE_Y_POSITION) {
-                    if (!isIdleOrBreakDialog) {
+                    if (!isIdle) {
                         isActive = false;
-                        isIdleOrBreakDialog = true;
-                        System.out.println("i am here 1");
+                        isIdle = true;
+                        activeTimer.cancel();
+                        idleTimer = new Timer();
+                        idleTimer.scheduleAtFixedRate(new IdleTimer(), Constants.TIMER_DELAY, Constants.TIMER_REPEAT_TIME);
                         idleDialog.setVisible(true);
                     }
                 }else {
@@ -425,4 +485,61 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         }
         return stringBuilder.toString();
     }
+
+    private Component createRenderer(int i) {
+        JButton jButton = new JButton();
+        jButton.setText(mProjects.get(i).getProject());
+        jButton.setBackground(Color.white);
+        jButton.setForeground(Color.black);
+        jButton.setHorizontalAlignment(JButton.LEFT);
+        jButton.setFont(new Font("Arial", Font.BOLD, 16));
+        jButton.setBorder(BorderFactory.createLineBorder(Color.lightGray, 1));
+        return jButton;
+    }
+
+
+
+    //Timer for active and idle time
+    // Also send to required information on the server in requested time interval
+
+    // this is responsible to run for active time to calculate
+    class TaskTimer extends TimerTask {
+        @Override
+        public void run() {
+            activeTime += TimeUnit.MILLISECONDS.toSeconds(1000);
+            loggedInTimeLabel.setText("Active Time : " + Constants.formatSecondDateTime(activeTime));
+            captureImage();
+        }
+    }
+
+    class IdleTimer extends TimerTask {
+        @Override
+        public void run() {
+            // activeTime += TimeUnit.MILLISECONDS.toSeconds(1000);
+            idle += TimeUnit.MILLISECONDS.toSeconds(1000);
+            idleTimeLabel.setText("Idle Time : " + Constants.formatSecondDateTime(idle));
+        }
+    }
+
+    class CaptureTimer extends TimerTask {
+        @Override
+        public void run() {
+            captureImage();
+        }
+    }
+
+    class ServerSenderTimer extends TimerTask {
+        @Override
+        public void run() {
+
+        }
+    }
+
+    class BreakTimer extends TimerTask {
+        @Override
+        public void run() {
+
+        }
+    }
+
 }
