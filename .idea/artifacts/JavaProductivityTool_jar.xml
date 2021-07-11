@@ -3,6 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/JavaProductivityTool_jar</output-path>
     <root id="archive" name="JavaProductivityTool.jar">
       <element id="module-output" name="JavaProductivityTool" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/json-20210307.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

@@ -57,7 +57,7 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
-        this.setIconImage(new ImageIcon("logo.png").getImage());
+        this.setIconImage(new ImageIcon("download.png").getImage());
         this.getContentPane().setBackground(Color.white);
 
         //Select project jLabel
@@ -396,6 +396,11 @@ public class MainScreen extends JFrame implements ListSelectionListener, MouseLi
             task = "Analysis and Planning";
             System.out.println(task);
         }else if (actionCommand.equalsIgnoreCase("6")) {
+            if (activeTimer != null)
+                activeTimer.cancel();
+            if (idleTimer != null)
+                idleTimer.cancel();
+
             SignInScreen mainScreen = new SignInScreen();
             setVisible(false);
             dispose();

@@ -18,7 +18,7 @@ public class SignInScreen extends JFrame {
     private String username = "";
     private String password = "";
     private JFrame jFrame;
-    public SignInScreen() {
+    public SignInScreen(){
         super("V Logger");
         jFrame = this;
 
@@ -27,7 +27,7 @@ public class SignInScreen extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
-        this.setIconImage(new ImageIcon("logo.png").getImage());
+        this.setIconImage(new ImageIcon("download.png").getImage());
         this.getContentPane().setBackground(Color.white);
 
         JButton jButton = new JButton("Sign-in");
