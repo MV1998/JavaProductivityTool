@@ -1,7 +1,12 @@
 package com.viriminfotech.utilities;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+
 public class Constants {
 
+    public static String JDBC_CLASS = "org.sqlite.JDBC";
+    public static String V_LOGGER_DATABASE = "jdbc:sqlite:vlogger.db";
 
     public static String PROJECT_API = "http://192.168.45.209:4300/project";
     public static String SIGN_IN_API = "http://192.168.45.209:4300/login";
@@ -12,7 +17,7 @@ public class Constants {
     public static final int TIMER_DELAY = 1000;
    // public static final int TIMER_REPEAT_TIME = 180000;
     public static final int TIMER_REPEAT_TIME = 1000;
-    public static final int IMAGE_CAPTURE_TIMER = 360000;
+    public static final int IMAGE_CAPTURE_TIMER = 10000;
 
     public static final String PROJECT_NAME = "VLogger";
     public static final String SIGN_IN = "Sign In";
@@ -41,5 +46,16 @@ public class Constants {
         int m = second % 3600 / 60;
         int s = second % 60; // Less than 60 is the second, enough 60 is the minute
         return h+"h "+m+"m "+s+"s";
+    }
+
+    public static BufferedImage resize(BufferedImage img, int newW, int newH) {
+        Image tmp = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+        BufferedImage dimg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = dimg.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+
+        return dimg;
     }
 }

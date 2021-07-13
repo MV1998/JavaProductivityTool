@@ -18,6 +18,6 @@ public class InternetConnectionChecker {
         } catch (IOException e) {
             System.out.println("Maybe internet issue:");
         }
-        return false;
+        return true;
     }
 }

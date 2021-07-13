@@ -1,20 +1,22 @@
 package com.viriminfotech;
 
+import com.github.sarxos.webcam.Webcam;
 import com.viriminfotech.screens.SignInScreen;
+import com.viriminfotech.utilities.Constants;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class Main {
@@ -39,24 +41,161 @@ public class Main {
 //        frame.setLocationRelativeTo(null);
 //        frame.setVisible(true);
 
-       SignInScreen signInScreen = new SignInScreen();
+        SignInScreen signInScreen = new SignInScreen();
 
-//        try {
-//            String line;
-//            Process p = Runtime.getRuntime().exec
-//                    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
-//            BufferedReader input =
-//                    new BufferedReader(new InputStreamReader(p.getInputStream()));
-//            while ((line = input.readLine()) != null) {
-//                System.out.println(line); //<-- Parse data here.
-//            }
-//            input.close();
-//        } catch (Exception err) {
-//            err.printStackTrace();
-//        }
+
+        // webcam camera accessing and taking picture
+        try {
+
+//           Class.forName("org.hsqldb.jdbc.JDBCDriver");
+//           Connection connection = DriverManager.getConnection("jdbc:hsqldb:mem:myDb;shutdown=true", "sa", "");
+//           BasicConfigurator.configure();
 //
-//        ProcessHandle.allProcesses()
-//                .forEach(process -> System.out.println(processDetails(process)));
+//           Statement statement = connection.createStatement();
+//           statement.executeQuery("CREATE TABLE tutorials_tbl ( id INT NOT NULL, title VARCHAR(50) NOT NULL, author VARCHAR(20) NOT NULL, submission_date DATE, PRIMARY KEY (id)); ");
+//
+//
+//           statement.executeQuery("INSERT INTO tutorials_tbl VALUES (100,'Learn PHP', 'John Poul', NOW())");
+//           connection.commit();
+//
+//
+//           ResultSet resul1 = statement.executeQuery("SELECT id, title, author FROM tutorials_tbl");
+//           //System.out.println("rows affected " + result);
+//           while(resul1.next()){
+//               System.out.println(resul1.getInt("id")+" | "+
+//                       resul1.getString("title")+" | "+
+//                       resul1.getString("author"));
+//           }
+//           connection.prepareStatement("SHUTDOWN").execute();
+//           statement.close();
+//           connection.close();
+
+//           Class.forName("org.sqlite.JDBC");
+//           Connection c = DriverManager.getConnection("jdbc:sqlite:test.db");
+//           System.out.println("Opened database successfully");
+//
+
+            //Statement stmt = c.createStatement();
+//           String sql = "CREATE TABLE COMPANY " +
+//                   "(ID INT PRIMARY KEY     NOT NULL," +
+//                   " NAME           TEXT    NOT NULL, " +
+//                   " AGE            INT     NOT NULL, " +
+//                   " ADDRESS        CHAR(50), " +
+//                   " SALARY         REAL)";
+//           stmt.executeUpdate(sql);
+//
+//           String st = "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) " +
+//                   "VALUES (1, 'Paul', 32, 'California', 20000.00 );";
+//           stmt.executeUpdate(st);
+
+
+//           ResultSet resultSet =  stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='COMPANY';");
+//           System.out.println(resultSet.getRow());
+//           System.out.println(resultSet.next());
+//
+//           ResultSet resultSet1 =  stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='USERDATA';");
+//           System.out.println(resultSet1.getRow());
+//           System.out.println(resultSet1.next());
+//
+//
+//           ResultSet resultSet2 = stmt.executeQuery("DROP TABLE COMPANY;");
+
+//           ResultSet rs = stmt.executeQuery( "SELECT * FROM COMPANY;" );
+//
+//           while ( rs.next() ) {
+//               int id = rs.getInt("id");
+//               String  name = rs.getString("name");
+//               int age  = rs.getInt("age");
+//               String  address = rs.getString("address");
+//               float salary = rs.getFloat("salary");
+//
+//               System.out.println( "ID = " + id );
+//               System.out.println( "NAME = " + name );
+//               System.out.println( "AGE = " + age );
+//               System.out.println( "ADDRESS = " + address );
+//               System.out.println( "SALARY = " + salary );
+//               System.out.println();
+//           }
+//           rs.close();
+//
+//           stmt.close();
+//           c.close();
+
+            Webcam webcam = Webcam.getDefault();
+            if (webcam != null) {
+                System.out.println("name"+ webcam.getName());
+
+                webcam.open();
+
+                // get image
+                BufferedImage image = webcam.getImage();
+
+                BufferedImage newImage = Constants.resize(image, 500, 500);
+
+                // save image to PNG file
+                ImageIO.write(newImage, "PNG", new File("D:\\test.png"));
+                webcam.close();
+            }else {
+                System.out.println("no webcam detected.");
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        // listing running process of particular system
+        if (Constants.IS_WINDOWS) {
+            try {
+                String line;
+                Process p = Runtime.getRuntime().exec
+                        (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+                BufferedReader input =
+                        new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((line = input.readLine()) != null) {
+                    System.out.println(line); //<-- Parse data here.
+                }
+                input.close();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+        }else if (Constants.IS_UNIX) {
+            System.out.println("you are on linux");
+
+            try {
+                String line;
+                Process p = Runtime.getRuntime().exec("ps -e --sort=-size");
+                BufferedReader input =
+                        new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((line = input.readLine()) != null) {
+                    System.out.println(line); //<-- Parse data here.
+                }
+                input.close();
+
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+
+        }else if(Constants.IS_MAC) {
+            System.out.println("You are on mac");
+
+            try {
+                String line;
+                Process p = Runtime.getRuntime().exec("ps -e --sort=-size");
+                BufferedReader input =
+                        new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((line = input.readLine()) != null) {
+                    System.out.println(line); //<-- Parse data here.
+                }
+                input.close();
+
+
+
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+
 
 
 //        JPanel panel = createPanel();
@@ -75,8 +214,31 @@ public class Main {
                 text(process.info().commandLine()));
     }
 
+
+
     private static String text(Optional<?> optional) {
         return optional.map(Object::toString).orElse("-");
+    }
+
+    public static String getUrl(){
+        try {
+            Thread.sleep(3000);//
+            Robot r=new Robot();
+            r.keyPress(KeyEvent.VK_ALT); /* to get focus on taskbar
+   r.keyPress(KeyEvent.VK_D);       */
+            r.keyRelease(KeyEvent.VK_ALT);
+            r.keyRelease(KeyEvent.VK_D);
+            r.keyPress(KeyEvent.VK_CONTROL);  /* to copy it*/
+            r.keyPress(KeyEvent.VK_C);
+            r.keyRelease(KeyEvent.VK_CONTROL);
+            r.keyRelease(KeyEvent.VK_C);
+            String selectedText =(String)Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor); // it extracts the highlighted text of system clipboard
+            System.out.println(selectedText);
+            return selectedText;
+        }catch ( Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void createWindowWithButton() {

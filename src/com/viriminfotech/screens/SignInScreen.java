@@ -1,7 +1,5 @@
 package com.viriminfotech.screens;
 
-import com.viriminfotech.https_request.SignInLoad;
-import com.viriminfotech.interfaces.SignInListener;
 import com.viriminfotech.utilities.InternetConnectionChecker;
 
 import javax.swing.*;
@@ -34,7 +32,7 @@ public class SignInScreen extends JFrame {
         jButton.setFont(new Font("", Font.BOLD, 18));
         jButton.setBounds(0, 300, 600, 50);
         jButton.setForeground(Color.white);
-        jButton.setBackground(Color.decode("#b39ddb"));
+        jButton.setBackground(Color.decode("#311b92"));
 
         JLabel authenticating = new JLabel("Authenticating...");
         authenticating.setHorizontalAlignment(JTextField.CENTER);
@@ -75,7 +73,7 @@ public class SignInScreen extends JFrame {
                 }else {
                     authenticating.setText("Please check your internet connection.");
                     jButton.setEnabled(true);
-                    jButton.setBackground(Color.decode("#b39ddb"));
+                    jButton.setBackground(Color.decode("#311b92"));
                 }
             }
         });
@@ -152,9 +150,6 @@ public class SignInScreen extends JFrame {
                 if (jPassword.getText().length() != 0) {
                     System.out.println(jPassword.getText().toString());
                     password = jPassword.getText();
-                    if(!username.isEmpty() && !password.isEmpty()) {
-                        jButton.setBackground(Color.decode("#311b92"));
-                    }
                 }
             }
         });
